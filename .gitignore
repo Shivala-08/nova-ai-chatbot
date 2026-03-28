@@ -1,0 +1,18 @@
+# API Keys and Sensitive Config
+config.js
+
+# OS-generated files
+.DS_Store
+Thumbs.db
+
+# IDEs
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# Project local files
+node_modules/
+dist/
+build/
+.env
