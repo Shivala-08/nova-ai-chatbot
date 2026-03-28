@@ -136,9 +136,12 @@
   <script src="config.js" onerror="this.src='config.example.js'"></script>
   
   <script>
-    // Simple check to ensure configuration is loaded
-    if (typeof CONFIG === 'undefined') {
-      console.warn('Nova AI: config.js not found. Using localStorage fallback.');
+    // Check if configuration is missing or using placeholders
+    const isPlaceholder = (typeof CONFIG !== 'undefined' && 
+      (CONFIG.openRouter.apiKey.includes('REPLACE_ME') || CONFIG.openRouter.apiKey.includes('YOUR_')));
+    
+    if (typeof CONFIG === 'undefined' || isPlaceholder) {
+      console.warn('Nova AI: Configuration missing or using placeholders. Using localStorage fallback.');
       window.CONFIG_MISSING = true;
     }
   </script>

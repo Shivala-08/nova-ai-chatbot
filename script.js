@@ -36,6 +36,15 @@ function getApiKey(service) {
   if (localKey && localKey.trim() !== '') return localKey;
 
   // 2. Try CONFIG object from config.js
+  // Check if configuration is missing or using placeholders
+  const isPlaceholder = (typeof CONFIG !== 'undefined' && CONFIG[service] &&
+    (CONFIG[service].apiKey.includes('REPLACE_ME') || CONFIG[service].apiKey.includes('YOUR_')));
+  
+  if (typeof CONFIG === 'undefined' || isPlaceholder) {
+    console.warn('Nova AI: Configuration missing or using placeholders. Using localStorage fallback.');
+    window.CONFIG_MISSING = true;
+  }
+
   if (typeof CONFIG !== 'undefined' && CONFIG[service] && CONFIG[service].apiKey) {
     const configKey = CONFIG[service].apiKey;
     if (configKey && configKey !== 'REPLACE_ME' && configKey !== `YOUR_${service.toUpperCase()}_API_KEY_HERE`) {
@@ -328,6 +337,8 @@ async function sendChatMessage(userMessage) {
 async function generateImage(prompt) {
   showImageSpinner();
   setProcessing(true);
+
+  const apiKey = getApiKey('huggingFace');
 
   if (!apiKey) {
     removeImageSpinner();
