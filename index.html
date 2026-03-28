@@ -32,6 +32,10 @@
           <span>Image Mode</span>
           <span class="toggle-indicator" id="toggleIndicator"></span>
         </button>
+        <button class="btn btn-settings" id="settingsBtn">
+          <span class="btn-icon">⚙️</span>
+          <span>Settings</span>
+        </button>
       </div>
 
       <div class="sidebar-info">
@@ -100,6 +104,33 @@
       </div>
     </main>
   </div>
+  
+  <!-- Settings Modal -->
+  <div class="modal-overlay" id="settingsModal">
+    <div class="modal">
+      <div class="modal-header">
+        <h3>✦ API Configuration</h3>
+        <button class="modal-close" id="settingsCloseBtn">✕</button>
+      </div>
+      <div class="modal-body">
+        <p class="modal-desc">Enter your API keys to enable Chat and Image Generation. Keys are stored locally in your browser.</p>
+        
+        <div class="input-group">
+          <label for="openRouterKey">OpenRouter API Key (Chat)</label>
+          <input type="password" id="openRouterKey" placeholder="sk-or-v1-...">
+          <small>Get it from <a href="https://openrouter.ai/keys" target="_blank">openrouter.ai</a></small>
+        </div>
+
+        <div class="input-group">
+          <label for="huggingFaceKey">Hugging Face API Key (Images)</label>
+          <input type="password" id="huggingFaceKey" placeholder="hf_...">
+          <small>Get it from <a href="https://huggingface.co/settings/tokens" target="_blank">huggingface.co</a></small>
+        </div>
+
+        <button class="btn btn-primary" id="saveSettingsBtn">Save Configuration</button>
+      </div>
+    </div>
+  </div>
 
   <!-- Load Configuration First -->
   <script src="config.js" onerror="this.src='config.example.js'"></script>
@@ -107,8 +138,8 @@
   <script>
     // Simple check to ensure configuration is loaded
     if (typeof CONFIG === 'undefined') {
-      console.error('Nova AI: Configuration not found. Please ensure config.js exists.');
-      alert('Configuration Error: Please rename config.example.js to config.js and add your API keys.');
+      console.warn('Nova AI: config.js not found. Using localStorage fallback.');
+      window.CONFIG_MISSING = true;
     }
   </script>
 

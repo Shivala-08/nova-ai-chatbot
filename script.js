@@ -22,6 +22,33 @@ const sidebar = document.getElementById('sidebar');
 const sidebarOverlay = document.getElementById('sidebarOverlay');
 const sidebarCloseBtn = document.getElementById('sidebarCloseBtn');
 const hamburgerBtn = document.getElementById('hamburgerBtn');
+const settingsBtn = document.getElementById('settingsBtn');
+const settingsModal = document.getElementById('settingsModal');
+const settingsCloseBtn = document.getElementById('settingsCloseBtn');
+const saveSettingsBtn = document.getElementById('saveSettingsBtn');
+const openRouterKeyInput = document.getElementById('openRouterKey');
+const huggingFaceKeyInput = document.getElementById('huggingFaceKey');
+
+// ---- Key Management ----
+function getApiKey(service) {
+  // 1. Try localStorage
+  const localKey = localStorage.getItem(`nova_ai_${service}_key`);
+  if (localKey && localKey.trim() !== '') return localKey;
+
+  // 2. Try CONFIG object from config.js
+  if (typeof CONFIG !== 'undefined' && CONFIG[service] && CONFIG[service].apiKey) {
+    const configKey = CONFIG[service].apiKey;
+    if (configKey && configKey !== 'REPLACE_ME' && configKey !== `YOUR_${service.toUpperCase()}_API_KEY_HERE`) {
+      return configKey;
+    }
+  }
+
+  return null;
+}
+
+function hasAllKeys() {
+  return !!(getApiKey('openRouter') && getApiKey('huggingFace'));
+}
 
 // ---- Utility Functions ----
 function getTimestamp() {
@@ -234,6 +261,16 @@ async function sendChatMessage(userMessage) {
   setProcessing(true);
 
   const models = CONFIG.openRouter.models;
+  const apiKey = getApiKey('openRouter');
+
+  if (!apiKey) {
+    removeTypingIndicator();
+    createMessageElement('bot', '⚠️ **API Key Missing**: Please click the **Settings** (⚙️) icon in the sidebar and add your OpenRouter API key.', { isError: true });
+    openSettings();
+    setProcessing(false);
+    return;
+  }
+
   let lastError = null;
 
   for (const model of models) {
@@ -242,7 +279,7 @@ async function sendChatMessage(userMessage) {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          'Authorization': `Bearer ${CONFIG.openRouter.apiKey}`,
+          'Authorization': `Bearer ${apiKey}`,
           'HTTP-Referer': window.location.href,
           'X-Title': 'Nova AI',
         },
@@ -292,12 +329,20 @@ async function generateImage(prompt) {
   showImageSpinner();
   setProcessing(true);
 
+  if (!apiKey) {
+    removeImageSpinner();
+    createMessageElement('bot', '⚠️ **API Key Missing**: Please click the **Settings** (⚙️) icon in the sidebar and add your Hugging Face API key.', { isError: true });
+    openSettings();
+    setProcessing(false);
+    return;
+  }
+
   try {
     const response = await fetch(CONFIG.huggingFace.url, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
-        'Authorization': `Bearer ${CONFIG.huggingFace.apiKey}`,
+        'Authorization': `Bearer ${apiKey}`,
       },
       body: JSON.stringify({ inputs: prompt }),
     });
@@ -423,7 +468,44 @@ function attachChipListeners() {
   });
 }
 
+// ---- Settings Controls ----
+function openSettings() {
+  // Pre-fill inputs with existing keys if they exist in localStorage
+  openRouterKeyInput.value = localStorage.getItem('nova_ai_openRouter_key') || '';
+  huggingFaceKeyInput.value = localStorage.getItem('nova_ai_huggingFace_key') || '';
+  
+  settingsModal.classList.add('active');
+  closeSidebar();
+}
+
+function closeSettings() {
+  settingsModal.classList.remove('active');
+}
+
+function handleSaveSettings() {
+  const orKey = openRouterKeyInput.value.trim();
+  const hfKey = huggingFaceKeyInput.value.trim();
+
+  if (orKey) localStorage.setItem('nova_ai_openRouter_key', orKey);
+  if (hfKey) localStorage.setItem('nova_ai_huggingFace_key', hfKey);
+
+  closeSettings();
+  
+  // Show a mini feedback message
+  const msg = createMessageElement('bot', '✅ **Settings Saved**: Your API keys have been updated locally. You can now start chatting!');
+  setTimeout(() => msg.remove(), 5000);
+}
+
 // ---- Event Listeners ----
+settingsBtn.addEventListener('click', openSettings);
+settingsCloseBtn.addEventListener('click', closeSettings);
+saveSettingsBtn.addEventListener('click', handleSaveSettings);
+
+// Close modal on outside click
+settingsModal.addEventListener('click', (e) => {
+  if (e.target === settingsModal) closeSettings();
+});
+
 sendBtn.addEventListener('click', handleSend);
 
 userInput.addEventListener('keydown', (e) => {
@@ -445,3 +527,10 @@ sidebarOverlay.addEventListener('click', closeSidebar);
 // ---- Initialize ----
 attachChipListeners();
 userInput.focus();
+
+// Auto-open settings if keys are missing (only once at start if on Hosted environment)
+setTimeout(() => {
+  if (window.CONFIG_MISSING && !hasAllKeys()) {
+    openSettings();
+  }
+}, 1000);
