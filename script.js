@@ -2,6 +2,23 @@
    Nova AI — Application Logic
    ========================================= */
 
+// ---- Safety Initialization ----
+// If config.js is missing or empty, initialize global CONFIG with default URLs
+if (typeof CONFIG === 'undefined') {
+  window.CONFIG = {
+    openRouter: { 
+      url: 'https://openrouter.ai/api/v1/chat/completions', 
+      models: ['nvidia/nemotron-nano-9b-v2:free', 'mistralai/mistral-7b-instruct:free'],
+      apiKey: 'REPLACE_ME'
+    },
+    huggingFace: { 
+      url: 'https://api-inference.huggingface.co/models/runwayml/stable-diffusion-v1-5',
+      apiKey: 'REPLACE_ME'
+    }
+  };
+  window.CONFIG_MISSING = true;
+}
+
 // ---- State ----
 let isImageMode = false;
 let conversationHistory = [];
@@ -36,18 +53,9 @@ function getApiKey(service) {
   if (localKey && localKey.trim() !== '') return localKey;
 
   // 2. Try CONFIG object from config.js
-  // Check if configuration is missing or using placeholders
-  const isPlaceholder = (typeof CONFIG !== 'undefined' && CONFIG[service] &&
-    (CONFIG[service].apiKey.includes('REPLACE_ME') || CONFIG[service].apiKey.includes('YOUR_')));
-  
-  if (typeof CONFIG === 'undefined' || isPlaceholder) {
-    console.warn('Nova AI: Configuration missing or using placeholders. Using localStorage fallback.');
-    window.CONFIG_MISSING = true;
-  }
-
   if (typeof CONFIG !== 'undefined' && CONFIG[service] && CONFIG[service].apiKey) {
     const configKey = CONFIG[service].apiKey;
-    if (configKey && configKey !== 'REPLACE_ME' && configKey !== `YOUR_${service.toUpperCase()}_API_KEY_HERE`) {
+    if (configKey && configKey !== 'REPLACE_ME' && !configKey.includes('YOUR_')) {
       return configKey;
     }
   }
@@ -264,21 +272,20 @@ function removeImageSpinner() {
 
 // ---- API Calls ----
 async function sendChatMessage(userMessage) {
-  conversationHistory.push({ role: 'user', content: userMessage });
-
-  showTypingIndicator();
-  setProcessing(true);
-
-  const models = CONFIG.openRouter.models;
   const apiKey = getApiKey('openRouter');
 
   if (!apiKey) {
-    removeTypingIndicator();
     createMessageElement('bot', '⚠️ **API Key Missing**: Please click the **Settings** (⚙️) icon in the sidebar and add your OpenRouter API key.', { isError: true });
     openSettings();
     setProcessing(false);
     return;
   }
+
+  conversationHistory.push({ role: 'user', content: userMessage });
+  showTypingIndicator();
+  setProcessing(true);
+
+  const models = CONFIG.openRouter.models || ['nvidia/nemotron-nano-9b-v2:free'];
 
   let lastError = null;
 
