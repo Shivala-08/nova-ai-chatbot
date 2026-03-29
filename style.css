@@ -945,6 +945,28 @@ body {
   box-shadow: 0 4px 15px var(--accent-glow) !important;
 }
 
+.modal-actions {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  margin-top: 20px;
+}
+
+.btn-outline {
+  width: 100%;
+  justify-content: center;
+  background: transparent !important;
+  color: var(--text-secondary) !important;
+  border: 1px solid var(--border) !important;
+  padding: 12px !important;
+}
+
+.btn-outline:hover {
+  background: var(--bg-hover) !important;
+  color: var(--text-primary) !important;
+  border-color: var(--text-muted) !important;
+}
+
 /* Sidebar Settings Button specific */
 .btn-settings {
   margin-top: 4px;

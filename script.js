@@ -43,6 +43,7 @@ const settingsBtn = document.getElementById('settingsBtn');
 const settingsModal = document.getElementById('settingsModal');
 const settingsCloseBtn = document.getElementById('settingsCloseBtn');
 const saveSettingsBtn = document.getElementById('saveSettingsBtn');
+const clearSettingsBtn = document.getElementById('clearSettingsBtn');
 const openRouterKeyInput = document.getElementById('openRouterKey');
 const huggingFaceKeyInput = document.getElementById('huggingFaceKey');
 
@@ -500,6 +501,14 @@ function closeSettings() {
   settingsModal.classList.remove('active');
 }
 
+function handleClearSettings() {
+  if (confirm('Are you sure you want to clear your saved API keys? This will log you out of your session.')) {
+    localStorage.removeItem('nova_ai_openRouter_key');
+    localStorage.removeItem('nova_ai_huggingFace_key');
+    location.reload(); // Reload to reset state
+  }
+}
+
 function handleSaveSettings() {
   const orKey = openRouterKeyInput.value.trim();
   const hfKey = huggingFaceKeyInput.value.trim();
@@ -518,6 +527,7 @@ function handleSaveSettings() {
 settingsBtn.addEventListener('click', openSettings);
 settingsCloseBtn.addEventListener('click', closeSettings);
 saveSettingsBtn.addEventListener('click', handleSaveSettings);
+clearSettingsBtn.addEventListener('click', handleClearSettings);
 
 // Close modal on outside click
 settingsModal.addEventListener('click', (e) => {
