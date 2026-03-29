@@ -12,7 +12,7 @@ if (typeof CONFIG === 'undefined') {
       apiKey: 'REPLACE_ME'
     },
     huggingFace: { 
-      url: 'https://api-inference.huggingface.co/models/stabilityai/stable-diffusion-xl-base-1.0',
+      url: 'https://router.huggingface.co/hf-inference/models/stabilityai/stable-diffusion-xl-base-1.0',
       apiKey: 'REPLACE_ME'
     }
   };
